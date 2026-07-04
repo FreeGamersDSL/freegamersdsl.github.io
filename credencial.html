@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeGamers - Credencial</title>
+    <!-- Librería externa para permitir la descarga de la tarjeta militar como imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Satisfy&display=swap" rel="stylesheet">
+    <Style>
+        /* --- VARIABLES Y CONFIGURACIÓN --- */
+        :root {
+            --bg-dark: #07080d;
+            --bg-card: #12141c;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --cyan-glow: #00f2fe;
+            --orange-glow: #ff8c00;
+            --red-glow: #ff2a2a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-top: 80px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* --- CONTENEDORES GENERALES --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            font-size: 0.95rem;
+        }
+
+        /* --- NUEVO: GENERADOR DE TARJETA MILITAR --- */
+        .id-generator-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            background: #11131a;
+            padding: 35px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+        }
+
+        /* Formulario */
+        .id-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            background: #181b26;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--cyan-glow);
+        }
+
+        /* Estructura Visual de la Tarjeta */
+        .id-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .military-id-card {
+            width: 450px;
+            height: 280px;
+            background: linear-gradient(135deg, #151821 0%, #090b10 100%);
+            border: 2px solid #222533;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Líneas de diseño militar */
+        .military-id-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--cyan-glow), var(--orange-glow));
+        }
+
+        .card-watermark {
+            position: absolute;
+            bottom: 60px;
+            right: 6px;
+            font-size: 6rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.015);
+            text-transform: uppercase;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .card-inner-layout {
+            display: flex;
+            height: 100%;
+            gap: 15px;
+        }
+
+        .card-photo-side {
+            width: 120px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-photo-side img {
+            height: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.5));
+        }
+
+        .card-info-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-logo-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 5px;
+        }
+
+        .card-clan-name {
+            font-size: 0.95rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .card-clan-name span {
+            color: var(--cyan-glow);
+        }
+
+        .card-meta-tag {
+            font-family: monospace;
+            font-size: 0.65rem;
+            color: var(--red-glow);
+            font-weight: bold;
+        }
+
+        .card-main-data {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .card-user-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-data-line {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .card-data-line strong {
+            color: #cbd5e1;
+            text-transform: uppercase;
+        }
+
+        .card-footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 5px;
+            font-family: monospace;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-download-card {
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-download-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .card-signature-box {
+            margin-top: 8px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.2);
+            padding-top: 4px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .card-signature-box {
+            margin-top: 8px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.2);
+            padding-top: 4px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .signature-display {
+            font-family: 'Satisfy', cursive;
+            font-size: 1.2rem;
+            color: #00ff66;
+            /* Combina con el verde de la frecuencia de radio */
+            letter-spacing: 0.5px;
+        }
+    </Style>
+</head>
+
+<body>
+    <!-- NUEVA SECCIÓN: GENERADOR DE TARJETA MILITAR -->
+    <div class="container" id="id_player" style="border-top: 1px solid rgba(255,255,255,0.02); padding-top: 60px;">
+        <h2 class="section-title">Identidad de Jugador</h2>
+        <div class="section-subtitle">Genera tu credencial oficial de FreeGamers para guardarla o compartirla</div>
+
+        <div class="id-generator-container">
+            <!-- Formulario del Generador -->
+            <div class="id-form">
+                <div class="form-group">
+                    <label for="input-name">Nombre / Nick del Servidor</label>
+                    <input type="text" id="input-name" placeholder="Ej: FreeGamers" maxlength="18"
+                        oninput="updateCard()">
+                </div>
+                <div class="form-group">
+                    <label for="input-form-frecuencia">ID Cuenta (DSL)</label>
+                    <input type="text" id="input-frecuencia" placeholder="Ej: 123456" oninput="updateCard()"></select>
+                </div>
+                <div class="grid-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="select-platform">Dispositivo</label>
+                        <select id="select-platform" onchange="updateCard()">
+                            <option value="🖥️ PC">PC</option>
+                            <option value="📱 Android">Android</option>
+                            <option value="🔗 PC y Android">PC y Android</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="select-role-1">Rol 1 (Principal):</label>
+                        <select id="select-role-1" onchange="updateCard()">
+                            <option value="Miembro">Miembro</option>
+                            <option value="Kamikaze">Kamikaze</option>
+                            <option value="Armero">Armero</option>
+                            <option value="Mecánico">Mecánico</option>
+                            <option value="Médico">Médico</option>
+                            <option value="Decano">Decano</option>
+                            <option value="Sub-líder">Sub-líder</option>
+                            <option value="Líder">Líder</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="select-role-2">Rol 2 (Opcional):</label>
+                        <select id="select-role-2" onchange="updateCard()">
+                            <option value="">-- Ninguno --</option>
+                            <option value="Creador de Contenido">Creador de Contenido</option>
+                            <option value="Streamer">Streamer</option>
+                            <option value="Policia">Policia</option>
+                            <option value="Organizador">Organizador</option>
+                            <option value="Veterano">Veterano</option>
+                            <option value="Elite">Elite</option>
+                            <option value="Reclutador">Reclutador</option>
+                            <option value="Moderador">Moderador</option>
+                            <option value="Fundador">Fundador</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="select-role-3">Rol 3 (Opcional):</label>
+                        <select id="select-role-3" onchange="updateCard()">
+                            <option value="">-- Ninguno --</option>
+                            <option value="Creador de Contenido">Creador de Contenido</option>
+                            <option value="Streamer">Streamer</option>
+                            <option value="Sniper">Sniper</option>
+                            <option value="Piloto">Piloto</option>
+                            <option value="Chofer">Chofer</option>
+                            <option value="Espía">Espía</option>
+                            <option value="Conquistador">Conquistador</option>
+                            <option value="Asesino / Rusher">Asesino / Rusher</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="select-skin">Skin Asignada (ID)</label>
+                    <select id="select-skin" onchange="updateCard()">
+                        <option value="0">ID 0 (Carl Johnson - CJ)</option>
+                        <option value="1">ID 1 (The Truth)</option>
+                        <option value="2">ID 2 (Maccer)</option>
+                        <option value="3">ID 3 (Andre)</option>
+                        <option value="4">ID 4 (Big Smoke)</option>
+                        <option value="5">ID 5 (Ryder)</option>
+                        <option value="6">ID 6 (Emmet)</option>
+                        <option value="7">ID 7 (Taxi Driver)</option>
+                        <option value="9">ID 9 (Normal Ped)</option>
+                        <option value="10">ID 10 (Old Ped)</option>
+                        <option value="11">ID 11 (Normal Ped)</option>
+                        <option value="12">ID 12 (Normal Ped)</option>
+                        <option value="13">ID 13 (Normal Ped)</option>
+                        <option value="14">ID 14 (Normal Ped)</option>
+                        <option value="15">ID 15 (Normal Ped)</option>
+                        <option value="16">ID 16 (Airport Ground Crew)</option>
+                        <option value="17">ID 17 (Normal Ped)</option>
+                        <option value="18">ID 18 (Beach Visitor)</option>
+                        <option value="19">ID 19 (DJ)</option>
+                        <option value="20">ID 20 (Normal Ped)</option>
+                        <option value="21">ID 21 (BMYRI)</option>
+                        <option value="22">ID 22 (Normal Ped)</option>
+                        <option value="23">ID 23 (BMYST)</option>
+                        <option value="24">ID 24 (Normal Ped)</option>
+                        <option value="25">ID 25 (Normal Ped)</option>
+                        <option value="26">ID 26 (Normal Ped)</option>
+                        <option value="27">ID 27 (Construction Worker)</option>
+                        <option value="28">ID 28 (Normal Ped)</option>
+                        <option value="29">ID 29 (Normal Ped)</option>
+                        <option value="30">ID 30 (Normal Ped)</option>
+                        <option value="31">ID 31 (Normal Ped)</option>
+                        <option value="32">ID 32 (Normal Ped)</option>
+                        <option value="33">ID 33 (Normal Ped)</option>
+                        <option value="34">ID 34 (Normal Ped)</option>
+                        <option value="35">ID 35 (Normal Ped)</option>
+                        <option value="36">ID 36 (Normal Ped)</option>
+                        <option value="37">ID 37 (Normal Ped)</option>
+                        <option value="38">ID 38 (Normal Ped)</option>
+                        <option value="39">ID 39 (Normal Ped)</option>
+                        <option value="40">ID 40 (Normal Ped)</option>
+                        <option value="41">ID 41 (Normal Ped)</option>
+                        <option value="43">ID 43 (Normal Ped)</option>
+                        <option value="44">ID 44 (Normal Ped)</option>
+                        <option value="45">ID 45 (Normal Ped)</option>
+                        <option value="46">ID 46 (Rifa Táctico)</option>
+                        <option value="47">ID 47 (Normal Ped)</option>
+                        <option value="48">ID 48 (Normal Ped)</option>
+                        <option value="49">ID 49 (Normal Ped)</option>
+                        <option value="50">ID 50 (Mechanic)</option>
+                        <option value="51">ID 51 (Normal Ped)</option>
+                        <option value="52">ID 52 (Normal Ped)</option>
+                        <option value="53">ID 53 (Normal Ped)</option>
+                        <option value="54">ID 54 (Normal Ped)</option>
+                        <option value="55">ID 55 (Normal Ped)</option>
+                        <option value="56">ID 56 (Normal Ped)</option>
+                        <option value="57">ID 57 (Normal Ped)</option>
+                        <option value="58">ID 58 (Normal Ped)</option>
+                        <option value="59">ID 59 (Normal Ped)</option>
+                        <option value="60">ID 60 (Normal Ped)</option>
+                        <option value="61">ID 61 (Normal Ped)</option>
+                        <option value="62">ID 62 (Normal Ped)</option>
+                        <option value="63">ID 63 (Normal Ped)</option>
+                        <option value="64">ID 64 (Normal Ped)</option>
+                        <option value="66">ID 66 (Normal Ped)</option>
+                        <option value="67">ID 67 (Normal Ped)</option>
+                        <option value="68">ID 68 (Normal Ped)</option>
+                        <option value="69">ID 69 (Normal Ped)</option>
+                        <option value="70">ID 70 (Scientist)</option>
+                        <option value="71">ID 71 (Security Guard)</option>
+                        <option value="72">ID 72 (Normal Ped)</option>
+                        <option value="73">ID 73 (Normal Ped)</option>
+                        <option value="75">ID 75 (Normal Ped)</option>
+                        <option value="76">ID 76 (Normal Ped)</option>
+                        <option value="77">ID 77 (Normal Ped)</option>
+                        <option value="78">ID 78 (Normal Ped)</option>
+                        <option value="79">ID 79 (Normal Ped)</option>
+                        <option value="80">ID 80 (Normal Ped)</option>
+                        <option value="81">ID 81 (Normal Ped)</option>
+                        <option value="82">ID 82 (Normal Ped)</option>
+                        <option value="83">ID 83 (Normal Ped)</option>
+                        <option value="84">ID 84 (Normal Ped)</option>
+                        <option value="85">ID 85 (Normal Ped)</option>
+                        <option value="87">ID 87 (Normal Ped)</option>
+                        <option value="88">ID 88 (Normal Ped)</option>
+                        <option value="89">ID 89 (Normal Ped)</option>
+                        <option value="90">ID 90 (Normal Ped)</option>
+                        <option value="91">ID 91 (Normal Ped)</option>
+                        <option value="92">ID 92 (Normal Ped)</option>
+                        <option value="93">ID 93 (Normal Ped)</option>
+                        <option value="94">ID 94 (Normal Ped)</option>
+                        <option value="95">ID 95 (Normal Ped)</option>
+                        <option value="96">ID 96 (Normal Ped)</option>
+                        <option value="97">ID 97 (Normal Ped)</option>
+                        <option value="98">ID 98 (Normal Ped)</option>
+                        <option value="99">ID 99 (Normal Ped)</option>
+                        <option value="100">ID 100 (Normal Ped)</option>
+                        <option value="101">ID 101 (Normal Ped)</option>
+                        <option value="102">ID 102 (Ballas 1)</option>
+                        <option value="103">ID 103 (Ballas 2)</option>
+                        <option value="104">ID 104 (Ballas 3)</option>
+                        <option value="105">ID 105 (Grove Street 1)</option>
+                        <option value="106">ID 106 (Grove Street 2)</option>
+                        <option value="107">ID 107 (Grove Street 3)</option>
+                        <option value="108">ID 108 (Vagos 1)</option>
+                        <option value="109">ID 109 (Vagos 2)</option>
+                        <option value="110">ID 110 (Vagos 3)</option>
+                        <option value="111">ID 111 (Rifa 1)</option>
+                        <option value="112">ID 112 (Rifa 2)</option>
+                        <option value="113">ID 113 (Rifa 3)</option>
+                        <option value="114">ID 114 (Azteca 1)</option>
+                        <option value="115">ID 115 (Azteca Combate)</option>
+                        <option value="116">ID 116 (Azteca 3)</option>
+                        <option value="117">ID 117 (Triad 1)</option>
+                        <option value="118">ID 118 (Triad 2)</option>
+                        <option value="120">ID 120 (Triad 3)</option>
+                        <option value="121">ID 121 (Da Nang Boy 1)</option>
+                        <option value="122">ID 122 (Da Nang Boy 2)</option>
+                        <option value="123">ID 123 (Da Nang Boy 3)</option>
+                        <option value="124">ID 124 (Mafia 1)</option>
+                        <option value="125">ID 125 (Mafia 2)</option>
+                        <option value="126">ID 126 (Mafia 3)</option>
+                        <option value="127">ID 127 (Mafia 4)</option>
+                        <option value="128">ID 128 (Farm Inhabitant)</option>
+                        <option value="129">ID 129 (Farm Inhabitant)</option>
+                        <option value="130">ID 130 (Farm Inhabitant)</option>
+                        <option value="131">ID 131 (Farm Inhabitant)</option>
+                        <option value="132">ID 132 (Farm Inhabitant)</option>
+                        <option value="133">ID 133 (Farm Inhabitant)</option>
+                        <option value="134">ID 134 (Normal Ped)</option>
+                        <option value="135">ID 135 (Normal Ped)</option>
+                        <option value="136">ID 136 (Normal Ped)</option>
+                        <option value="137">ID 137 (Normal Ped)</option>
+                        <option value="138">ID 138 (Normal Ped)</option>
+                        <option value="139">ID 139 (Normal Ped)</option>
+                        <option value="140">ID 140 (Normal Ped)</option>
+                        <option value="141">ID 141 (Normal Ped)</option>
+                        <option value="142">ID 142 (Normal Ped)</option>
+                        <option value="143">ID 143 (Normal Ped)</option>
+                        <option value="144">ID 144 (Normal Ped)</option>
+                        <option value="145">ID 145 (Normal Ped)</option>
+                        <option value="146">ID 146 (Normal Ped)</option>
+                        <option value="147">ID 147 (Normal Ped)</option>
+                        <option value="148">ID 148 (Normal Ped)</option>
+                        <option value="150">ID 150 (Normal Ped)</option>
+                        <option value="151">ID 151 (Normal Ped)</option>
+                        <option value="152">ID 152 (Normal Ped)</option>
+                        <option value="153">ID 153 (Construction Worker)</option>
+                        <option value="154">ID 154 (Normal Ped)</option>
+                        <option value="155">ID 155 (Normal Ped)</option>
+                        <option value="156">ID 156 (Normal Ped)</option>
+                        <option value="157">ID 157 (Normal Ped)</option>
+                        <option value="158">ID 158 (Normal Ped)</option>
+                        <option value="159">ID 159 (Normal Ped)</option>
+                        <option value="160">ID 160 (Normal Ped)</option>
+                        <option value="161">ID 161 (Normal Ped)</option>
+                        <option value="162">ID 162 (Normal Ped)</option>
+                        <option value="163">ID 163 (Bouncer)</option>
+                        <option value="164">ID 164 (Bouncer)</option>
+                        <option value="165">ID 165 (Normal Ped)</option>
+                        <option value="166">ID 166 (Normal Ped)</option>
+                        <option value="167">ID 167 (Chicken Boy)</option>
+                        <option value="168">ID 168 (Hotdog Vendor)</option>
+                        <option value="169">ID 169 (Normal Ped)</option>
+                        <option value="170">ID 170 (Normal Ped)</option>
+                        <option value="171">ID 171 (Normal Ped)</option>
+                        <option value="172">ID 172 (Normal Ped)</option>
+                        <option value="173">ID 173 (Normal Ped)</option>
+                        <option value="174">ID 174 (Normal Ped)</option>
+                        <option value="175">ID 175 (Normal Ped)</option>
+                        <option value="176">ID 176 (Normal Ped)</option>
+                        <option value="177">ID 177 (Normal Ped)</option>
+                        <option value="178">ID 178 (Normal Ped)</option>
+                        <option value="179">ID 179 (Normal Ped)</option>
+                        <option value="180">ID 180 (Normal Ped)</option>
+                        <option value="181">ID 181 (Normal Ped)</option>
+                        <option value="182">ID 182 (Normal Ped)</option>
+                        <option value="183">ID 183 (Normal Ped)</option>
+                        <option value="184">ID 184 (Normal Ped)</option>
+                        <option value="185">ID 185 (Normal Ped)</option>
+                        <option value="186">ID 186 (Normal Ped)</option>
+                        <option value="187">ID 187 (Normal Ped)</option>
+                        <option value="188">ID 188 (Normal Ped)</option>
+                        <option value="189">ID 189 (Normal Ped)</option>
+                        <option value="190">ID 190 (Normal Ped)</option>
+                        <option value="191">ID 191 (Normal Ped)</option>
+                        <option value="192">ID 192 (Normal Ped)</option>
+                        <option value="193">ID 193 (Normal Ped)</option>
+                        <option value="194">ID 194 (Normal Ped)</option>
+                        <option value="195">ID 195 (Normal Ped)</option>
+                        <option value="196">ID 196 (Normal Ped)</option>
+                        <option value="197">ID 197 (Normal Ped)</option>
+                        <option value="198">ID 198 (Normal Ped)</option>
+                        <option value="199">ID 199 (Normal Ped)</option>
+                        <option value="200">ID 200 (Normal Ped)</option>
+                        <option value="201">ID 201 (Normal Ped)</option>
+                        <option value="202">ID 202 (Normal Ped)</option>
+                        <option value="203">ID 203 (Normal Ped)</option>
+                        <option value="204">ID 204 (Normal Ped)</option>
+                        <option value="205">ID 205 (Normal Ped)</option>
+                        <option value="206">ID 206 (Normal Ped)</option>
+                        <option value="207">ID 207 (Normal Ped)</option>
+                        <option value="209">ID 209 (Normal Ped)</option>
+                        <option value="210">ID 210 (Normal Ped)</option>
+                        <option value="211">ID 211 (Staff Crew)</option>
+                        <option value="212">ID 212 (Normal Ped)</option>
+                        <option value="213">ID 213 (Normal Ped)</option>
+                        <option value="214">ID 214 (Normal Ped)</option>
+                        <option value="215">ID 215 (Normal Ped)</option>
+                        <option value="216">ID 216 (Normal Ped)</option>
+                        <option value="217">ID 217 (Staff Civil)</option>
+                        <option value="218">ID 218 (Normal Ped)</option>
+                        <option value="219">ID 219 (Normal Ped)</option>
+                        <option value="220">ID 220 (Normal Ped)</option>
+                        <option value="221">ID 221 (Normal Ped)</option>
+                        <option value="222">ID 222 (Normal Ped)</option>
+                        <option value="223">ID 223 (Normal Ped)</option>
+                        <option value="224">ID 224 (Normal Ped)</option>
+                        <option value="225">ID 225 (Normal Ped)</option>
+                        <option value="226">ID 226 (Normal Ped)</option>
+                        <option value="227">ID 227 (Normal Ped)</option>
+                        <option value="228">ID 228 (Normal Ped)</option>
+                        <option value="229">ID 229 (Normal Ped)</option>
+                        <option value="230">ID 230 (Normal Ped)</option>
+                        <option value="231">ID 231 (Normal Ped)</option>
+                        <option value="232">ID 232 (Normal Ped)</option>
+                        <option value="233">ID 233 (Normal Ped)</option>
+                        <option value="234">ID 234 (Normal Ped)</option>
+                        <option value="235">ID 235 (Normal Ped)</option>
+                        <option value="236">ID 236 (Normal Ped)</option>
+                        <option value="237">ID 237 (Normal Ped)</option>
+                        <option value="238">ID 238 (Normal Ped)</option>
+                        <option value="239">ID 239 (Normal Ped)</option>
+                        <option value="240">ID 240 (Normal Ped)</option>
+                        <option value="241">ID 241 (Normal Ped)</option>
+                        <option value="242">ID 242 (Normal Ped)</option>
+                        <option value="243">ID 243 (Normal Ped)</option>
+                        <option value="244">ID 244 (Normal Ped)</option>
+                        <option value="245">ID 245 (Normal Ped)</option>
+                        <option value="246">ID 246 (Normal Ped)</option>
+                        <option value="247">ID 247 (Normal Ped)</option>
+                        <option value="248">ID 248 (Normal Ped)</option>
+                        <option value="249">ID 249 (Normal Ped)</option>
+                        <option value="250">ID 250 (Normal Ped)</option>
+                        <option value="251">ID 251 (Normal Ped)</option>
+                        <option value="252">ID 252 (Normal Ped)</option>
+                        <option value="253">ID 253 (Normal Ped)</option>
+                        <option value="254">ID 254 (Normal Ped)</option>
+                        <option value="255">ID 255 (Normal Ped)</option>
+                        <option value="256">ID 256 (Normal Ped)</option>
+                        <option value="257">ID 257 (Normal Ped)</option>
+                        <option value="258">ID 258 (Normal Ped)</option>
+                        <option value="259">ID 259 (Normal Ped)</option>
+                        <option value="260">ID 260 (Normal Ped)</option>
+                        <option value="261">ID 261 (Normal Ped)</option>
+                        <option value="262">ID 262 (Normal Ped)</option>
+                        <option value="263">ID 263 (Normal Ped)</option>
+                        <option value="264">ID 264 (FBI Agent)</option>
+                        <option value="265">ID 265 (LSPD Officer)</option>
+                        <option value="266">ID 266 (SFPD Officer)</option>
+                        <option value="267">ID 267 (LVPD Officer)</option>
+                        <option value="268">ID 268 (Dwight)</option>
+                        <option value="269">ID 269 (Melvin - Big Smoke)</option>
+                        <option value="270">ID 270 (Sweet Johnson)</option>
+                        <option value="271">ID 271 (Ryder)</option>
+                        <option value="272">ID 272 (Forelli Mafia)</option>
+                        <option value="274">ID 274 (Paramedic)</option>
+                        <option value="275">ID 275 (Paramedic)</option>
+                        <option value="276">ID 276 (Paramedic)</option>
+                        <option value="277">ID 277 (Firefighter)</option>
+                        <option value="278">ID 278 (Firefighter)</option>
+                        <option value="279">ID 279 (Firefighter)</option>
+                        <option value="280">ID 280 (LSPD Officer)</option>
+                        <option value="281">ID 281 (SFPD Officer)</option>
+                        <option value="282">ID 282 (LVPD Officer)</option>
+                        <option value="283">ID 283 (County Sheriff)</option>
+                        <option value="284">ID 284 (Motorcycle Officer)</option>
+                        <option value="285">ID 285 (S.W.A.T. Táctico)</option>
+                        <option value="286">ID 286 (FBI Agent)</option>
+                        <option value="287">ID 287 (Ejército / Militar)</option>
+                        <option value="288">ID 288 (Desert Sheriff)</option>
+                        <option value="290">ID 290 (Ken Rosenberg)</option>
+                        <option value="291">ID 291 (Kent Paul)</option>
+                        <option value="292">ID 292 (Cesar Vialpando)</option>
+                        <option value="293">ID 293 (OG Loc)</option>
+                        <option value="294">ID 294 (Woozie)</option>
+                        <option value="295">ID 295 (Mike Toreno)</option>
+                        <option value="296">ID 296 (Jizzy B.)</option>
+                        <option value="297">ID 297 (Madd Dogg)</option>
+                        <option value="298">ID 298 (Catalina)</option>
+                        <option value="299">ID 299 (Claude Speed)</option>
+                        <option value="300">ID 300 (LSPD Officer)</option>
+                        <option value="301">ID 301 (SFPD Officer)</option>
+                        <option value="302">ID 302 (LVPD Officer)</option>
+                        <option value="303">ID 303 (LSPD Officer)</option>
+                        <option value="304">ID 304 (SFPD Officer)</option>
+                        <option value="305">ID 305 (LVPD Officer)</option>
+                        <option value="306">ID 306 (LSPD Officer)</option>
+                        <option value="307">ID 307 (SFPD Officer)</option>
+                        <option value="308">ID 308 (LVPD Officer)</option>
+                        <option value="309">ID 309 (LSPD Officer)</option>
+                        <option value="310">ID 310 (SFPD Officer)</option>
+                        <option value="311">ID 311 (Oficial LSPD)</option>
+                    </select>
+                </div>
+
+                <button class="btn-download-card" style="margin-top: 10px;" onclick="downloadIDCard()">💾 Descargar
+                    Credencial</button>
+            </div>
+
+            <!-- Previsualización de la Tarjeta -->
+            <div class="id-card-wrapper">
+                <div class="military-id-card" id="card-to-capture">
+                    <div class="card-watermark">DSL</div>
+                    <div class="card-inner-layout">
+                        <!-- Foto de la Skin -->
+                        <div class="card-photo-side">
+                            <img id="card-skin-img" src="skins/0.png" alt="Skin">
+                        </div>
+                        <!-- Información -->
+                        <div class="card-info-side">
+                            <div class="card-logo-row">
+                                <div class="card-clan-name">Free<span>Gamers</span></div>
+                                <div class="card-meta-tag">Credencial</div>
+                            </div>
+                            <div class="card-main-data">
+                                <div class="card-user-name" id="card-display-name">TU_NICKNAME</div>
+                                <div class="card-data-line"><strong>ID Cuenta:</strong>
+                                    <span id="cred-frecuencia"
+                                        style="color: #00ff66; font-size: 0.9rem; font-family: monospace; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
+                                        123456
+                                    </span>
+                                </div>
+                                <div class="card-data-line"><strong>Dispositivo:</strong> <span
+                                        id="card-display-platform">🖥️ PC</span></div>
+                                <div class="card-data-line"><strong>Rol:</strong> <span
+                                        id="card-display-role">Miembro</span></div>
+
+
+                                <div class="card-data-line"><strong>ID Skin:</strong> <span
+                                        id="card-display-skin">0</span></div>
+                                <div class="card-data-line"><strong>Código Skin:</strong> ID <span
+                                        id="card-display-skin">0</span></div>
+
+                                <div class="card-signature-box">
+                                    <span>FIRMA DIGITAL:</span>
+                                    &nbsp;&nbsp;
+                                    <span id="card-display-firma" class="signature-display"></span>
+                                </div>
+
+                            </div>
+                            <div class="card-footer-row">
+                                <div>SAMP Server: 144.217.174.215:1328</div>
+                                <div>v2026</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ACTUALIZACIÓN DE TARJETA MILITAR EN TIEMPO REAL
+        function updateCard() {
+            const nameInput = document.getElementById('input-name').value.trim();
+            const platformSelect = document.getElementById('select-platform').value;
+            // Capturar los valores de los 3 selectores de roles
+            const role1 = document.getElementById('select-role-1').value;
+            const role2 = document.getElementById('select-role-2').value;
+            const role3 = document.getElementById('select-role-3').value;
+            const skinSelect = document.getElementById('select-skin').value;
+            const radioInput = document.getElementById('input-frecuencia').value.trim();
+
+            // Guardar en un array solo los roles que no estén vacíos
+            let rolesSeleccionados = [];
+            if (role1 !== "") rolesSeleccionados.push(role1);
+            if (role2 !== "") rolesSeleccionados.push(role2);
+            if (role3 !== "") rolesSeleccionados.push(role3);
+
+            // Juntar los roles con una coma y espacio (Ej: "Miembro, Conquistador, Líder")
+            // Si por alguna razón todos están vacíos, mostrará "Miembro" por defecto
+            const textoRoles = rolesSeleccionados.length > 0 ? rolesSeleccionados.join(', ') : "Miembro";
+
+            // Elementos de la tarjeta
+            document.getElementById('card-display-name').innerText = nameInput !== "" ? nameInput : "TU_NICKNAME";
+            document.getElementById('card-display-platform').innerText = platformSelect;
+            // Asignar la cadena de roles ya formateada con comas
+            document.getElementById('card-display-role').innerText = textoRoles;
+            document.getElementById('card-display-skin').innerText = skinSelect;
+            document.getElementById('cred-frecuencia').innerText = radioInput !== "" ? radioInput : "123456";
+
+            // Cambiar imagen de la skin dinámicamente usando la API oficial de open.mp
+            // SOLUCIÓN LOCAL: Al estar en tu propio servidor/carpeta, no sufres por bloqueos de seguridad
+            document.getElementById('card-skin-img').src = `skins/${skinSelect}.png`;
+
+            // Dentro de tu función updateCard() existente añade:
+            const firmaInput = document.getElementById('input-firma') ? document.getElementById('input-firma').value.trim() : "";
+            document.getElementById('card-display-firma').innerText = firmaInput !== "" ? firmaInput : (nameInput !== "" ? nameInput : "FreeGamers");
+        }
+
+        // DESCARGAR TARJETA MILITAR COMO IMAGEN (.PNG)
+        function downloadIDCard() {
+            const name = document.getElementById('input-name').value.trim() || "FreeGamers_ID";
+            const cardElement = document.getElementById('card-to-capture');
+
+            html2canvas(cardElement, {
+                useCORS: true,
+                allowTaint: false, // Evita que se ensucie el canvas con recursos sin permisos
+                backgroundColor: null,
+                scale: 2
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Credencial_${name}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(error => {
+                console.error("Error al generar la credencial: ", error);
+                alert("Hubo un detalle al exportar la tarjeta, intenta de nuevo.");
+            });
+        }
+    </script>
+</body>
+
+</html>
