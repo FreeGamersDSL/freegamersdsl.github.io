@@ -47,6 +47,16 @@
     <!-- Librería externa para permitir la descarga de la tarjeta militar como imagen -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+
+        /* Declarar la fuente oficial de GTA en formato OTF */
+@font-face {
+    font-family: 'Pricedown';
+    src: url('./font/Pricedown-Bl.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
         /* --- VARIABLES Y CONFIGURACIÓN --- */
         :root {
             --bg-dark: #07080d;
@@ -137,7 +147,8 @@
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-family: 'Pricedown', sans-serif;
+            font-size: 1.8rem;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -145,6 +156,7 @@
         }
 
         .logo span {
+            font-family: 'Pricedown', sans-serif;
             color: var(--cyan-glow);
             text-shadow: 0 0 10px var(--cyan-glow);
         }
@@ -245,6 +257,7 @@
         }
 
         .hero h1 {
+            font-family: 'Pricedown', sans-serif;
             font-size: 3rem;
             color: #fff;
             text-transform: uppercase;
@@ -363,6 +376,7 @@
         }
 
         .section-title {
+            font-family: 'Pricedown', sans-serif;
             text-align: center;
             font-size: 2rem;
             margin-bottom: 10px;
@@ -565,6 +579,7 @@
         }
 
         .impact-value {
+            font-family: 'Pricedown', sans-serif;
             font-size: 2.8rem;
             font-weight: 900;
             color: #fff;
@@ -653,6 +668,7 @@
         }
 
         .leader-name {
+            font-family: 'Pricedown', sans-serif;
             font-size: 1.3rem;
             font-weight: bold;
             color: #fff;
@@ -1129,6 +1145,118 @@
                 flex-direction: column;
             }
         }
+
+        /* Contenedor Principal del Contador */
+.counter-container {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 25px 20px;
+    max-width: 650px;
+    margin: 40px auto;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Título de la sección */
+.counter-title {
+    color: #00e5ff; /* Tu cyan brillante */
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+/* Grid Flexible y Responsivo */
+.countdown-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap; /* Permite que las cajas bajen de renglón si no caben en el celular */
+}
+
+/* Cajas individuales para cada unidad de tiempo */
+.time-box {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 12px 10px;
+    flex: 1;
+    min-width: 85px; /* Tamaño mínimo ideal para pantallas móviles */
+    max-width: 110px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease;
+}
+
+/* Efecto sutil al pasar el mouse (solo en PC) */
+@media (hover: hover) {
+    .time-box:hover {
+        transform: translateY(-3px);
+        border-color: rgba(0, 229, 255, 0.3);
+    }
+}
+
+/* Números grandes */
+.time-box span {
+    font-family: 'Pricedown', sans-serif;
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums; /* Evita que los números se muevan o tiemblen al cambiar */
+    letter-spacing: 1px;
+}
+
+/* Etiquetas de texto (Años, Días, etc.) */
+.time-box p {
+    font-size: 0.7rem;
+    color: #888888;
+    margin: 6px 0 0 0;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+/* ==========================================
+   MEDIA QUERIES (ADAPTACIÓN A MÓVILES)
+   ========================================== */
+
+/* Para celulares medianos y pequeños (Pantallas menores a 480px) */
+@media (max-width: 480px) {
+    .counter-container {
+        padding: 20px 15px;
+        margin: 25px 15px; /* Agrega margen a los lados para que no toque los bordes del celular */
+    }
+
+    .counter-title {
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+    }
+
+    .countdown-grid {
+        gap: 8px; /* Reduce el espacio entre cajas en pantallas chicas */
+    }
+
+    .time-box {
+        min-width: 60px; /* Se encogen un poco para encajar perfectamente de 3 en 3 o en filas compactas */
+        padding: 10px 5px;
+    }
+
+    .time-box span {
+        font-size: 1.5rem; /* Letra un poco más pequeña para evitar desbordamientos */
+    }
+
+    .time-box p {
+        font-size: 0.5rem;
+        letter-spacing: 0.5px;
+    }
+}
     </style>
 </head>
 
@@ -1241,7 +1369,7 @@
     <!-- SECCIÓN: CENTRO DE DESCARGAS -->
     <section class="downloads-center" id="descargas" style="padding: 60px 20px; max-width: 1200px; margin: 0 auto;">
         <h2
-            style="text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; color: #fff;">
+            style="font-family: 'Pricedown', sans-serif; text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; color: #fff;">
             Centro de Descargas
         </h2>
         <p
@@ -1396,13 +1524,13 @@
 
         <div class="impact-grid">
             <div class="impact-card neon-cyan">
-                <div class="impact-update-tag">2/07/2026</div>
-                <div class="impact-value">0</div>
+                <div class="impact-update-tag">5/07/2026</div>
+                <div class="impact-value">138</div>
                 <div class="impact-label">Score</div>
             </div>
             <div class="impact-card neon-orange">
-                <div class="impact-update-tag">2/07/2026</div>
-                <div class="impact-value">0%</div>
+                <div class="impact-update-tag">5/07/2026</div>
+                <div class="impact-value">69 / 69</div>
                 <div class="impact-label">Zonas Conquistadas</div>
             </div>
             <div class="impact-card neon-red">
@@ -1418,7 +1546,32 @@
         </div>
     </div>
 
-
+    <!-- CONTADOR DE TIEMPO DEL CLAN -->
+<div class="counter-container">
+    <h3 class="counter-title">Edad del Clan</h3>
+    <div class="countdown-grid">
+        <div class="time-box">
+            <span id="years">00</span>
+            <p>Años</p>
+        </div>
+        <div class="time-box">
+            <span id="days">00</span>
+            <p>Días</p>
+        </div>
+        <div class="time-box">
+            <span id="hours">00</span>
+            <p>Horas</p>
+        </div>
+        <div class="time-box">
+            <span id="minutes">00</span>
+            <p>Minutos</p>
+        </div>
+        <div class="time-box">
+            <span id="seconds">00</span>
+            <p>Segundos</p>
+        </div>
+    </div>
+</div>
 
     <!-- ESTADO MAYOR -->
     <div class="container" id="staff">
@@ -1427,7 +1580,7 @@
         <div class="leader-grid">
             <div class="leader-card">
                 <div class="skin-container">
-                    <img src="./skins/299.png" alt="Skin Líder">
+                    <img src="skins/299.png" alt="Skin Líder">
                 </div>
                 <div class="leader-name">Ledesmita</div>
                 <div class="leader-rank rank-master">Líder Fundador</div>
@@ -1438,7 +1591,7 @@
             </div>
             <div class="leader-card">
                 <div class="skin-container">
-                    <img src="./skins/0.png" alt="Skin Sublíder">
+                    <img src="skins/0.png" alt="Skin Sublíder">
                 </div>
                 <div class="leader-name">[Próximamente_SubLider]</div>
                 <div class="leader-rank rank-sub">Sub-Líder</div>
@@ -1473,6 +1626,8 @@
             </div>
         </div>
     </div>
+
+    
 
     <!-- PREGUNTAS FRECUENTES (DOBLE ACORDEÓN) -->
     <div class="container" id="faq" style="padding: 60px 20px; max-width: 1000px; margin: 0 auto;">
@@ -1760,7 +1915,7 @@
     <!-- RECLUTAMIENTO DIRECTO -->
     <div class="container" id="reclutamiento">
         <div class="contacto-section">
-            <h2 style="color: #fff; text-transform: uppercase; margin-bottom: 10px; font-size: 1.6rem;">¿Quieres Unirte
+            <h2 style="font-family: 'Pricedown', sans-serif; color: #fff; text-transform: uppercase; margin-bottom: 10px; font-size: 1.6rem;">¿Quieres Unirte
                 al Clan?</h2>
             <p style="color: var(--text-muted);">Ingresa al canal de reclutamiento oficial e inicia tu postulación
                 directa.</p>
@@ -1776,6 +1931,53 @@
     <footer>
         <p>&copy; 2026 Clan FreeGamers. Servidor Delincuencia Sin Límite (DSL). Todos los derechos reservados.</p>
     </footer>
+
+    <script>
+    // Fecha de fundación del clan: 1 de Julio de 2026
+    const foundationDate = new Date('2026-07-01T00:00:00').getTime();
+
+    function updateClanAge() {
+        const now = new Date().getTime();
+        let diff = now - foundationDate;
+
+        // Cálculos matemáticos para las conversiones de tiempo
+        const msInSecond = 1000;
+        const msInMinute = msInSecond * 60;
+        const msInHour = msInMinute * 60;
+        const msInDay = msInHour * 24;
+        const msInYear = msInDay * 365.25; // Incluye año bisiesto
+
+        // Calcular años
+        const years = Math.floor(diff / msInYear);
+        diff %= msInYear;
+
+        // Calcular días
+        const days = Math.floor(diff / msInDay);
+        diff %= msInDay;
+
+        // Calcular horas
+        const hours = Math.floor(diff / msInHour);
+        diff %= msInHour;
+
+        // Calcular minutos
+        const minutes = Math.floor(diff / msInMinute);
+        diff %= msInMinute;
+
+        // Calcular segundos
+        const seconds = Math.floor(diff / msInSecond);
+
+        // Insertar los valores en el HTML agregando un cero a la izquierda si es menor de 10
+        document.getElementById('years').innerText = String(years).padStart(2, '0');
+        document.getElementById('days').innerText = String(days).padStart(2, '0');
+        document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+    }
+
+    // Ejecutar la función de inmediato y luego actualizar cada 1 segundo
+    updateClanAge();
+    setInterval(updateClanAge, 1000);
+</script>
 
     <script>
         // Usamos el identificador técnico real (Mount Name) que detectaste
