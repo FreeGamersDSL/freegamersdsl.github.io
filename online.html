@@ -154,12 +154,33 @@
 
 <body>
     <div class="server-players-container">
-        <h3 class="counter-title">Jugadores en línea (DSL)</h3>
+        <h3 class="counter-title">Monitoreo del Servidor (DSL)</h3>
+    
+        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+            <div
+                style="background: rgba(13, 32, 56, 0.5); border: 1px solid #1f4c85; padding: 12px 20px; border-radius: 6px; flex: auto; max-width: 500px;">
+                <div
+                    style="text-align: center; font-size: 11px; text-transform: uppercase; color: #aaaaaa; letter-spacing: 1px;">
+                    Jugadores en Línea</div>
+                <div id="fg-contador-players"
+                    style="text-align: center; font-size: 22px; color: #00e5ff; font-weight: bold; margin-top: 4px;">-- / --
+                </div>
+            </div>
+            <div
+                style="background: rgba(13, 32, 56, 0.5); border: 1px solid #1f4c85; padding: 12px 20px; border-radius: 6px; flex: auto; max-width: 500px;">
+                <div
+                    style="text-align: center; font-size: 11px; text-transform: uppercase; color: #aaaaaa; letter-spacing: 1px;">
+                    Mapa Actual</div>
+                <div id="fg-mapa-actual"
+                    style="text-align: center; font-size: 18px; color: #a7ff3b; font-weight: bold; margin-top: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    Cargando...</div>
+            </div>
+        </div>
+    
         <div class="table-responsive">
             <table class="players-table">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>Nickname</th>
                         <th>Score</th>
                         <th>Ping</th>
@@ -167,139 +188,183 @@
                 </thead>
                 <tbody id="tabla-fg-players">
                     <tr>
-                        <td colspan="5" class="loading-status" style="color: #00e5ff;">[FG] Iniciando conexión segura
-                            con el monitor...</td>
+                        <td colspan="3" class="loading-status" style="color: #00e5ff;">[FG] Iniciando conexión segura con el
+                            monitor...</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
     <script>
-        // URL real del iframe de Game-State con los datos en vivo
-        const urlIframe = "https://www.game-state.com/iframe.php?ip=144.217.174.215&port=1328&showplayers=true";
+    // URL del iframe de Game-State (Widget Completo)
+    const urlIframe = "https://www.game-state.com/iframe.php?ip=144.217.174.215&port=1328&showplayers=true";
+    
+    const proxys = [
+        "https://api.allorigins.win/get?url=" + encodeURIComponent(urlIframe),
+        "https://corsproxy.io/?" + encodeURIComponent(urlIframe),
+        "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(urlIframe),
+        "https://thingproxy.freeboard.io/fetch/" + urlIframe,
+        "https://cors-anywhere.herokuapp.com/" + urlIframe
+    ];
 
-        // Súper lista de 5 proxys de alta velocidad para máxima resistencia
-        const proxys = [
-            "https://api.allorigins.win/get?url=" + encodeURIComponent(urlIframe), // 1. AllOrigins (Estructurado)
-            "https://corsproxy.io/?" + encodeURIComponent(urlIframe),              // 2. CorsProxy.io (Directo)
-            "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(urlIframe), // 3. CodeTabs (Texto plano)
-            "https://thingproxy.freeboard.io/fetch/" + urlIframe,                  // 4. ThingProxy (Respaldo)
-            "https://cors-anywhere.herokuapp.com/" + urlIframe                     // 5. Cors-Anywhere (Último recurso)
-        ];
-
-        async function updateServerPlayers() {
-            const playersList = document.getElementById('tabla-fg-players');
-            if (!playersList) return;
-
-            // El ciclo "for" recorrerá la lista de proxys uno por uno si el anterior falla
-            for (let i = 0; i < proxys.length; i++) {
-                try {
-                    // Añadimos un timestamp anti-caché solo a los proxys que lo permiten perfectamente
-                    const cacheBypass = (i === 0 || i === 1) ? '&t=' + new Date().getTime() : '';
-
-                    // Establecemos un tiempo límite de 6 segundos por proxy para que no se quede colgado esperando
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-                    const response = await fetch(proxys[i] + cacheBypass, { signal: controller.signal });
-                    clearTimeout(timeoutId);
-
-                    if (!response.ok) throw new Error(`Proxy ${i + 1} respondió con error`);
-
-                    let htmlText = "";
-
-                    // Si es el proxy 1 (AllOrigins), el HTML viene envuelto en un JSON (.contents)
-                    if (i === 0) {
-                        const rawData = await response.json();
-                        htmlText = rawData.contents;
-                    } else {
-                        // Los demás proxys devuelven el HTML directamente como texto plano
-                        htmlText = await response.text();
-                    }
-
-                    // Si el proxy funcionó y nos trajo el código real sin bloqueos, procesamos la tabla
-                    if (htmlText && !htmlText.toLowerCase().includes("cloudflare") && !htmlText.toLowerCase().includes("captcha")) {
-                        if (procesarHtmlIframe(htmlText)) {
-                            console.log(`Conexión exitosa usando el Proxy ${i + 1}`);
-                            return; // Salimos de la función por completo porque ya se pintó la tabla
-                        }
-                    } else {
-                        throw new Error(`Proxy ${i + 1} trajo un HTML vacío o bloqueado`);
-                    }
-
-                } catch (error) {
-                    console.warn(`Fallo en Proxy ${i + 1}: ${error.message}. Intentando el siguiente...`);
-                    // El ciclo continúa automáticamente al siguiente proxy de la lista
+    async function updateServerPlayers() {
+        const playersList = document.getElementById('tabla-fg-players');
+        if (!playersList) return;
+        
+        for (let i = 0; i < proxys.length; i++) {
+            try {
+                const cacheBypass = (i === 0 || i === 1) ? '&t=' + new Date().getTime() : '';
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 6000);
+                
+                const response = await fetch(proxys[i] + cacheBypass, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) throw new Error(`Proxy ${i + 1} caído`);
+                
+                let htmlText = "";
+                if (i === 0) {
+                    const rawData = await response.json();
+                    htmlText = rawData.contents;
+                } else {
+                    htmlText = await response.text();
                 }
+                
+                if (htmlText && !htmlText.toLowerCase().includes("cloudflare") && !htmlText.toLowerCase().includes("captcha")) {
+                    if (procesarHtmlIframe(htmlText)) {
+                        console.log(`Conexión exitosa y datos sincronizados con Proxy ${i + 1}`);
+                        return;
+                    }
+                } else {
+                    throw new Error(`Contenido bloqueado o inválido`);
+                }
+                
+            } catch (error) {
+                console.warn(`Fallo en Proxy ${i + 1}: ${error.message}`);
             }
-
-            // Si el ciclo termina y ningún proxy logró conectar
-            playersList.innerHTML = `<tr><td colspan="4" class="loading-status" style="color: #ff5252;">Error de red: Todos los puentes están saturados. Reintentando...</td></tr>`;
         }
 
-        // Función encargada de procesar las filas e inyectarlas de forma limpia en tu diseño
-        function procesarHtmlIframe(htmlText) {
-            const playersList = document.getElementById('tabla-fg-players');
+        playersList.innerHTML = `<tr><td colspan="3" class="loading-status" style="color: #ff5252;">Error de red: Sincronizando...</td></tr>`;
+    }
 
-            const contenedorFantasma = document.createElement('div');
-            contenedorFantasma.innerHTML = htmlText;
+    function procesarHtmlIframe(htmlText) {
+        const playersList = document.getElementById('tabla-fg-players');
+        const txtContador = document.getElementById('fg-contador-players');
+        const txtMapa = document.getElementById('fg-mapa-actual');
+        
+        if (!htmlText) return false;
 
-            const filas = contenedorFantasma.getElementsByTagName('tr');
-            const players = [];
+        const contenedorFantasma = document.createElement('div');
+        contenedorFantasma.innerHTML = htmlText;
+        
+        const textoLimpio = (contenedorFantasma.innerText || contenedorFantasma.textContent || "").toLowerCase().replace(/\s+/g, ' ');
+        
+        let totalJugadoresIframe = "0";
+        let mapaIframe = "San Andreas";
 
-            for (let i = 0; i < filas.length; i++) {
-                const celdas = filas[i].getElementsByTagName('td');
+        // 1. BUSCAR JUGADORES Y MÁXIMO
+        const posPlayers = textoLimpio.indexOf("players:");
+        if (posPlayers !== -1) {
+            let fragmento = textoLimpio.substring(posPlayers + 8, posPlayers + 23).trim();
+            let matchArr = fragmento.match(/(\d+\s*\/\s*\d+)/);
+            if (matchArr && matchArr[1]) {
+                totalJugadoresIframe = matchArr[1].replace(/\s+/g, '');
+            } else {
+                let numeroLimpio = fragmento.match(/\d+/);
+                if (numeroLimpio) totalJugadoresIframe = numeroLimpio[0];
+            }
+        }
 
-                if (celdas.length >= 2) {
-                    const nameClean = celdas[0].innerText ? celdas[0].innerText.trim() : celdas[0].textContent.trim();
-                    const scoreClean = celdas[1].innerText ? celdas[1].innerText.trim() : celdas[1].textContent.trim();
+        // 2. BUSCAR MAPA
+        let posMapa = textoLimpio.indexOf("mapname:");
+        let longitudPalabra = 8;
+        
+        if (posMapa === -1) {
+            posMapa = textoLimpio.indexOf("map:");
+            longitudPalabra = 4;
+        }
 
-                    const scoreNum = parseInt(scoreClean, 10);
+        if (posMapa !== -1) {
+            let fragmentoMapa = textoLimpio.substring(posMapa + longitudPalabra, posMapa + longitudPalabra + 30).trim();
+            let finMapa = fragmentoMapa.indexOf("gamemode");
+            if (finMapa === -1) finMapa = fragmentoMapa.indexOf("status");
+            
+            if (finMapa !== -1) {
+                mapaIframe = fragmentoMapa.substring(0, finMapa).trim();
+            } else {
+                mapaIframe = fragmentoMapa;
+            }
+        }
 
-                    if (
-                        nameClean.toLowerCase() !== 'players' &&
-                        nameClean.toLowerCase() !== 'player' &&
-                        nameClean.toLowerCase() !== 'score' &&
-                        nameClean.length > 1 &&
-                        !isNaN(scoreNum)
-                    ) {
-                        players.push({
-                            name: nameClean,
-                            score: scoreNum
-                        });
-                    }
+        if (mapaIframe) {
+            mapaIframe = mapaIframe.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+
+        if (txtContador) txtContador.innerText = totalJugadoresIframe;
+        if (txtMapa) txtMapa.innerText = mapaIframe || "San Andreas";
+
+        // 3. PROCESAR LA TABLA DE JUGADORES INDIVIDUALES
+        const filas = contenedorFantasma.getElementsByTagName('tr');
+        const players = [];
+        
+        for (let i = 0; i < filas.length; i++) {
+            const celdas = filas[i].getElementsByTagName('td');
+            
+            if (celdas.length >= 2) {
+                const nameClean = celdas[0].innerText ? celdas[0].innerText.trim() : celdas[0].textContent.trim();
+                const scoreClean = celdas[1].innerText ? celdas[1].innerText.trim() : celdas[1].textContent.trim();
+                
+                const scoreNum = parseInt(scoreClean, 10);
+                
+                if (
+                    nameClean.toLowerCase() !== 'players' && 
+                    nameClean.toLowerCase() !== 'players:' && 
+                    nameClean.toLowerCase() !== 'player' && 
+                    nameClean.toLowerCase() !== 'score' &&
+                    nameClean.toLowerCase() !== 'mapname:' &&
+                    nameClean.toLowerCase() !== 'gamemode:' &&
+                    nameClean.toLowerCase() !== 'status:' &&
+                    nameClean.toLowerCase() !== 'ip:' &&
+                    !nameClean.toLowerCase().includes('delincuencia') &&
+                    nameClean.length > 1 &&
+                    !isNaN(scoreNum)
+                ) {
+                    players.push({
+                        name: nameClean,
+                        score: scoreNum
+                    });
                 }
             }
+        }
+        
+        playersList.innerHTML = '';
+        
+        if (players.length === 0) {
+            playersList.innerHTML = `<tr><td colspan="3" class="loading-status">No hay jugadores en línea en DSL ahora.</td></tr>`;
+            return true;
+        }
+        
+        // Renderizado simplificado sin la columna '#'
+        players.forEach((player) => {
+            const pingSimulado = Math.floor(Math.random() * (200 - 80 + 1)) + 80;
+            const colorPing = pingSimulado > 150 ? '#ffaa00' : '#a7ff3b';
 
-            playersList.innerHTML = '';
-
-            if (players.length === 0) {
-                playersList.innerHTML = `<tr><td colspan="4" class="loading-status">No hay jugadores en línea en DSL ahora.</td></tr>`;
-                return true;
-            }
-
-            // Renderizado de las filas
-            players.forEach((player, index) => {
-                const pingSimulado = Math.floor(Math.random() * (200 - 60 + 1)) + 60;
-                const colorPing = pingSimulado > 150 ? '#ffaa00' : '#a7ff3b';
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                <td>${index + 1}</td>
+            const row = document.createElement('tr');
+            row.innerHTML = `
                 <td style="color: #00e5ff; font-weight: 500;">${player.name}</td>
                 <td>${player.score}</td>
                 <td style="color: ${colorPing}; font-family: monospace;">${pingSimulado}ms</td>
             `;
-                playersList.appendChild(row);
-            });
+            playersList.appendChild(row);
+        });
+        
+        return true;
+    }
 
-            return true;
-        }
-
-        // Inicialización y bucle de refresco cada 30 segundos
-        updateServerPlayers();
-        setInterval(updateServerPlayers, 60000);
-    </script>
+    updateServerPlayers();
+    setInterval(updateServerPlayers, 30000);
+</script>
 </body>
 
 </html>
