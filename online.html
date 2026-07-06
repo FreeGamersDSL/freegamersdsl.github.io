@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jugadores en linea DSL</title>
+    <style>
+        @font-face {
+    font-family: 'Pricedown';
+    src: url('./font/Pricedown-Bl.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+:root {
+            --bg-dark: #07080d;
+            --bg-card: #12141c;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --cyan-glow: #00f2fe;
+            --orange-glow: #ff8c00;
+            --red-glow: #ff2a2a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-top: 80px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Contenedor de la Tabla */
+.server-players-container {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 25px 20px;
+    max-width: 900px;
+    margin: 40px auto;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Responsividad para móviles */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto; /* Permite scroll horizontal si la tabla es muy ancha en celular */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Título de la sección */
+.counter-title {
+    font-family: 'Pricedown', sans-serif;
+    text-align: center;
+    color: #00e5ff; /* Tu cyan brillante */
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+/* Estilos de la Tabla */
+.players-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.95rem;
+    color: #ffffff;
+    text-align: left;
+}
+
+/* Encabezado idéntico a la imagen */
+.players-table thead tr {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.players-table th {
+    padding: 12px 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    color: #888888;
+}
+
+/* Filas de la tabla */
+.players-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease;
+}
+
+/* Efecto Hover en PC */
+@media (hover: hover) {
+    .players-table tbody tr:hover {
+        background-color: rgba(0, 229, 255, 0.05); /* Destello cian muy sutil */
+    }
+}
+
+.players-table td {
+    padding: 12px 15px;
+    font-variant-numeric: tabular-nums; /* Mantiene los números alineados */
+}
+
+/* Estados de carga y error */
+.loading-status {
+    text-align: center;
+    color: #888888;
+    font-style: italic;
+    padding: 30px;
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 480px) {
+    .server-players-container {
+        padding: 15px 10px;
+        margin: 25px 15px;
+    }
+    .players-table th, .players-table td {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="server-players-container">
+    <h3 class="counter-title">Jugadores en línea (DSL)</h3>
+    <div class="table-responsive">
+        <table class="players-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ID</th>
+                    <th>Nickname</th>
+                    <th>Score</th>
+                    <th>Ping</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-fg-players">
+                <tr>
+                    <td colspan="5" class="loading-status" style="color: #00e5ff;">[FG] Iniciando conexión segura con el monitor...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    // URL real del iframe de Game-State con los datos en vivo
+    const urlIframe = "https://www.game-state.com/iframe.php?ip=144.217.174.215&port=1328&showplayers=true";
+    
+    // Lista de proxys de alta velocidad para redundancia
+    const proxys = [
+        "https://api.allorigins.win/get?url=" + encodeURIComponent(urlIframe),
+        "https://corsproxy.io/?" + encodeURIComponent(urlIframe)
+    ];
+
+    async function updateServerPlayers() {
+        const playersList = document.getElementById('tabla-fg-players');
+        if (!playersList) return;
+        
+        // Intentamos con el primer proxy
+        try {
+            const response = await fetch(proxys[0] + '&t=' + new Date().getTime());
+            if (!response.ok) throw new Error('Proxy 1 caído');
+            
+            const rawData = await response.json();
+            const htmlText = rawData.contents;
+            
+            if (procesarHtmlIframe(htmlText)) return;
+            
+        } catch (e) {
+            console.warn("Falló el primer proxy, intentando respaldo...", e);
+        }
+
+        // RESPALDO: Intentamos con el segundo proxy si el primero falla
+        try {
+            const response = await fetch(proxys[1]);
+            if (!response.ok) throw new Error('Proxy 2 caído');
+            const htmlText = await response.text();
+            
+            if (procesarHtmlIframe(htmlText)) return;
+            
+        } catch (error) {
+            console.error('Error en ambos proxys:', error);
+            playersList.innerHTML = `<tr><td colspan="5" class="loading-status" style="color: #ff5252;">Error de red: Reintentando conexión...</td></tr>`;
+        }
+    }
+
+    // Función encargada de procesar los datos de los jugadores en la tabla
+    function procesarHtmlIframe(htmlText) {
+        const playersList = document.getElementById('tabla-fg-players');
+        if (!htmlText || htmlText.toLowerCase().includes("cloudflare")) return false;
+
+        const contenedorFantasma = document.createElement('div');
+        contenedorFantasma.innerHTML = htmlText;
+        
+        const filas = contenedorFantasma.getElementsByTagName('tr');
+        const players = [];
+        
+        for (let i = 0; i < filas.length; i++) {
+            const celdas = filas[i].getElementsByTagName('td');
+            
+            if (celdas.length >= 2) {
+                const nameClean = celdas[0].innerText ? celdas[0].innerText.trim() : celdas[0].textContent.trim();
+                const scoreClean = celdas[1].innerText ? celdas[1].innerText.trim() : celdas[1].textContent.trim();
+                
+                const scoreNum = parseInt(scoreClean, 10);
+                
+                if (
+                    nameClean.toLowerCase() !== 'players' && 
+                    nameClean.toLowerCase() !== 'player' && 
+                    nameClean.toLowerCase() !== 'score' &&
+                    nameClean.length > 1 &&
+                    !isNaN(scoreNum)
+                ) {
+                    players.push({
+                        name: nameClean,
+                        score: scoreNum
+                    });
+                }
+            }
+        }
+        
+        playersList.innerHTML = '';
+        
+        if (players.length === 0) {
+            playersList.innerHTML = `<tr><td colspan="5" class="loading-status">No hay jugadores en línea en DSL ahora.</td></tr>`;
+            return true;
+        }
+        
+        // Pintamos la lista aplicando tus rangos exactos de ID y Ping
+        players.forEach((player, index) => {
+            // ID real del juego empezando desde 0
+            const idSimulada = index; 
+            
+            // Genera un ping aleatorio realista entre 80ms y 200ms
+            const pingSimulado = Math.floor(Math.random() * (200 - 80 + 1)) + 80;
+
+            // Cambia dinámicamente el color del ping según el número obtenido (Verde aceptable / Naranja alto)
+            const colorPing = pingSimulado > 150 ? '#ffaa00' : '#a7ff3b';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td style="color: #aaaaaa; font-family: monospace;">${idSimulada}</td>
+                <td style="color: #00e5ff; font-weight: 500;">${player.name}</td>
+                <td>${player.score}</td>
+                <td style="color: ${colorPing}; font-family: monospace;">${pingSimulado}ms</td>
+            `;
+            playersList.appendChild(row);
+        });
+        
+        return true;
+    }
+
+    // Inicialización y actualización cada 120 segundos
+    updateServerPlayers();
+    setInterval(updateServerPlayers, 120000);
+</script>
+</body>
+</html>
